@@ -1,4 +1,5 @@
 import { type FormEvent, useState } from "react";
+import FileUploader from "~/components/FileUploader";
 import Navbar from "~/components/Navbar";
 
 const Upload = () => {
@@ -17,7 +18,7 @@ const Upload = () => {
             <Navbar />
 
             <section className="main-section">
-                <div className="page-heading">
+                <div className="page-heading py-16">
                     <h1>Smart feedback for your dream job</h1>
 
                     {isProcessing ? (
@@ -30,13 +31,31 @@ const Upload = () => {
                             />
                         </>
                     ) : (
-                        <>
-                            <h2>Drop your resume for an ATS score and improvement tips</h2>
 
-                            <form id="upload-form" onSubmit={handleSubmit}>
-                                {/* Add your file input and submit button here */}
-                            </form>
-                        </>
+                        <h2>Drop your resume for an ATS score and improvement tips</h2>
+                    )}
+                    {!isProcessing && (
+
+                        <form id="upload-form" onSubmit={handleSubmit} className="flex flex-col gap-4 mt-8">
+                            <div className="form-div">
+                                <label htmlFor="company-name">Company Name</label>
+                                <input type="text" name="company-name" placeholder="Company Name" id="company-name" />
+                            </div>
+                            <div className="form-div">
+                                <label htmlFor="job-title">Job Title</label>
+                                <input type="text" name="job-title" placeholder="Job Title" id="job-title" />
+                            </div>
+                            <div className="job description">
+                                <label htmlFor="job-description">Job Description</label>
+                                <textarea rows={5} name="job-description" placeholder="Job Description" id="job-description" />
+                            </div>
+                            <div className="form-div">
+                                <label htmlFor="uploader">Upload Resume</label>
+                                <FileUploader />
+                            </div>
+                            <button type="submit" className="primary-button" >Analyze Resume</button>
+                        </form>
+
                     )}
                 </div>
             </section>
