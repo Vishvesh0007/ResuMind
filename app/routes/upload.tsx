@@ -1,10 +1,17 @@
-import { type FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
+
 import FileUploader from "~/components/FileUploader";
 import Navbar from "~/components/Navbar";
 
 const Upload = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [statusText, setStatusText] = useState("");
+    const [file, setFile] = useState();
+
+    const handleFileSelect = (file: File | null) => {
+        console.log(file);
+    };
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -45,13 +52,13 @@ const Upload = () => {
                                 <label htmlFor="job-title">Job Title</label>
                                 <input type="text" name="job-title" placeholder="Job Title" id="job-title" />
                             </div>
-                            <div className="job description">
+                            <div className="job-description">
                                 <label htmlFor="job-description">Job Description</label>
                                 <textarea rows={5} name="job-description" placeholder="Job Description" id="job-description" />
                             </div>
                             <div className="form-div">
                                 <label htmlFor="uploader">Upload Resume</label>
-                                <FileUploader />
+                                <FileUploader onFileSelect={() => { }} />
                             </div>
                             <button type="submit" className="primary-button" >Analyze Resume</button>
                         </form>
