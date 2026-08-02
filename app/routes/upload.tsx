@@ -7,17 +7,26 @@ import Navbar from "~/components/Navbar";
 const Upload = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [statusText, setStatusText] = useState("");
-    const [file, setFile] = useState();
+    const [file, setFile] = useState<File | null>(null);
 
     const handleFileSelect = (file: File | null) => {
+        setFile(file);
         console.log(file);
     };
 
     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const form = e.currentTarget.closest("form");
+        if (!form) return;
 
-        setIsProcessing(true);
-        setStatusText("Uploading resume...");
+        const formData = new FormData(form);
+
+        const companyName = formData.get("company-name") as string;
+        const jobTitle = formData.get("job-title") as string;
+        const jobDescription = formData.get("job-description") as string;
+
+        console.log(companyName, jobTitle, jobDescription);
+
     };
 
     return (
@@ -58,7 +67,7 @@ const Upload = () => {
                             </div>
                             <div className="form-div">
                                 <label htmlFor="uploader">Upload Resume</label>
-                                <FileUploader onFileSelect={() => { }} />
+                                <FileUploader onFileSelect={handleFileSelect} />
                             </div>
                             <button type="submit" className="primary-button" >Analyze Resume</button>
                         </form>
