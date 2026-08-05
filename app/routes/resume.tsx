@@ -38,6 +38,7 @@ const Resume = () => {
             setImageUrl(imageUrl);
 
             setFeedback(data.feedback);
+            console.log({ resumeUrl, imageUrl, feedback: data.feedback })
         }
 
     }, [id]);
@@ -50,14 +51,30 @@ const Resume = () => {
                 </Link>
             </nav>
             <div className="flex flex-row w-full max-lg:flex-col-reverse">
-                <section className="feedback-section">
+                <section className="feedback-section bg-[url('/images/bg-small.svg')] bg-cover h-[100vh] sticky top-0 items-center justify-center">
                     {imageUrl && resumeUrl && (
-                        <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-wxl:h-fit w-fit"></div>
+                        <div className="animate-in fade-in duration-1000 gradient-border max-sm:m-0 h-[90%] max-wxl:h-fit w-fit">
+                            <a href={resumeUrl} target="_blank" rel="noopener noreferrer">
+                                <img
+                                    src={imageUrl}
+                                    className="w-full h-full object-contain rounded-2xl"
+                                    title="resume" />
+                            </a>
+                        </div>
                     )}
 
                 </section>
+                <section className="feedback-section">
+                    <h2 className="text-4xl !text-black font-bold">Resume Review</h2>
+                    {feedback ? (
+                        <div className="fkex flex-col gap-8 animate-in fade-in duration-1000">
+                            Summary ATS Details
+                        </div>
+                    ) : (
+                        <img src="/images/resume-scan-2.gif" className="w-full" />
+                    )}
+                </section>
             </div>
-
         </main>
     );
 }
