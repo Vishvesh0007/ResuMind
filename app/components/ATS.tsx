@@ -1,7 +1,12 @@
-const Ats = () => {
+interface AtsProps {
+    feedback: number;
+    suggestions: { type: "good" | "improve"; tip: string }[];
+}
+
+const Ats = ({ feedback, suggestions }: AtsProps) => {
     return (
         <div>
-            ATS
+            ATS: {feedback}
         </div>
     )
 }
