@@ -1,1 +1,1 @@
-export { Accordion, AccordionItem, AccordionHeader, AccordionContent } from "./components/Accordian";
+export { Accordion, AccordionItem, AccordionHeader, AccordionContent } from "./components/Accordion";
