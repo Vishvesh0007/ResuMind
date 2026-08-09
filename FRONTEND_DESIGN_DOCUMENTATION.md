@@ -1,6 +1,6 @@
 # Frontend Design Documentation
 
-This document provides a comprehensive design and architectural analysis of the **Resumeind (AI-Powered Applicant Tracking System)** frontend application.
+This document provides a comprehensive design and architectural analysis of the **ResuMind (AI-Powered Applicant Tracking System)** frontend application.
 
 ---
 
@@ -131,7 +131,7 @@ d:\github project\ai-powered-applicant-tracking-system
 
 ## 5. Navigation Design
 
-* **Top Navigation Bar (`Navbar.tsx`)**: Fixed at top on Home and Upload screens. Contains the gradient logo (`RESUMEIND`) linking to `/` and an *"Upload Resume"* button linking to `/upload`.
+* **Top Navigation Bar (`Navbar.tsx`)**: Fixed at top on Home and Upload screens. Contains the gradient logo (`ResuMind`) linking to `/` and an *"Upload Resume"* button linking to `/upload`.
 * **Sub-Navigation (`resume.tsx`)**: Features a clean top bar with a back button (*"Back to Homepage"* with back arrow icon).
 * **Route Navigation Map**:
 ```
@@ -318,7 +318,7 @@ Redirect to /resume/:id (Split Screen View)
 ## 18. Complete Screen Map
 
 ```
-RESUMEIND APP
+RESUMIND APP
 ├── AUTH
 │   └── /auth (Puter Auth Login / Logout Screen)
 ├── MAIN APP
