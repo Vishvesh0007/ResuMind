@@ -17,6 +17,7 @@ declare global {
                 read: (path: string) => Promise<Blob>;
                 upload: (file: File[] | Blob[]) => Promise<FSItem>;
                 delete: (path: string) => Promise<void>;
+                del?: (path: string) => Promise<void>;
                 readdir: (path: string) => Promise<FSItem[] | undefined>;
             };
             ai: {
@@ -34,7 +35,8 @@ declare global {
             kv: {
                 get: (key: string) => Promise<string | null>;
                 set: (key: string, value: string) => Promise<boolean>;
-                delete: (key: string) => Promise<boolean>;
+                delete?: (key: string) => Promise<boolean>;
+                del?: (key: string) => Promise<boolean>;
                 list: (pattern: string, returnValues?: boolean) => Promise<string[]>;
                 flush: () => Promise<boolean>;
             };
@@ -74,7 +76,8 @@ interface PuterStore {
         ) => Promise<AIResponse | undefined>;
         feedback: (
             path: string,
-            message: string
+            message: string,
+            extractedText?: string
         ) => Promise<AIResponse | undefined>;
         img2txt: (
             image: string | File | Blob,
@@ -307,7 +310,13 @@ export const usePuterStore = create<PuterStore>((set, get) => {
             setError("Puter.js not available");
             return;
         }
-        return puter.fs.delete(path);
+        const fs = puter.fs as any;
+        if (typeof fs.del === "function") {
+            return fs.del(path);
+        }
+        if (typeof fs.delete === "function") {
+            return fs.delete(path);
+        }
     };
 
     const chat = async (
@@ -327,31 +336,67 @@ export const usePuterStore = create<PuterStore>((set, get) => {
         >;
     };
 
-    const feedback = async (path: string, message: string) => {
+    const feedback = async (path: string, message: string, extractedText?: string) => {
         const puter = getPuter();
         if (!puter) {
             setError("Puter.js not available");
             return;
         }
 
-        return puter.ai.chat(
-            [
-                {
-                    role: "user",
-                    content: [
+        const promptContent: any[] = [];
+
+        if (extractedText && extractedText.trim()) {
+            promptContent.push({
+                type: "text",
+                text: `--- RESUME TEXT ---\n${extractedText.trim()}\n--- END RESUME TEXT ---\n\n${message}`,
+            });
+        } else {
+            if (path) {
+                promptContent.push({
+                    type: "file",
+                    puter_path: path,
+                });
+            }
+            promptContent.push({
+                type: "text",
+                text: message,
+            });
+        }
+
+        const maxRetries = 2;
+        let lastError: any = null;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+            try {
+                const callPromise = puter.ai.chat(
+                    [
                         {
-                            type: "file",
-                            puter_path: path,
-                        },
-                        {
-                            type: "text",
-                            text: message,
+                            role: "user",
+                            content: promptContent,
                         },
                     ],
-                },
-            ],
-            { model: "gemini-2.5-flash" }
-        ) as Promise<AIResponse | undefined>;
+                    { model: "claude-sonnet-4" }
+                );
+
+                const timeoutGuard = new Promise<never>((_, reject) => {
+                    setTimeout(() => reject(new Error("AI service request timed out after 45 seconds.")), 45000);
+                });
+
+                const result = (await Promise.race([callPromise, timeoutGuard])) as AIResponse;
+                if (!result || !result.message) {
+                    throw new Error("Empty response received from AI service.");
+                }
+                return result;
+            } catch (err: any) {
+                lastError = err;
+                console.warn(`Puter AI feedback attempt ${attempt + 1} failed:`, err);
+                if (attempt < maxRetries) {
+                    await new Promise((resolve) => setTimeout(resolve, 1500 * (attempt + 1)));
+                }
+            }
+        }
+
+        throw new Error(lastError?.message || "AI analysis failed after retries.");
     };
 
     const img2txt = async (image: string | File | Blob, testMode?: boolean) => {
@@ -387,7 +432,14 @@ export const usePuterStore = create<PuterStore>((set, get) => {
             setError("Puter.js not available");
             return;
         }
-        return puter.kv.delete(key);
+        const kv = puter.kv as any;
+        if (typeof kv.del === "function") {
+            return kv.del(key);
+        }
+        if (typeof kv.delete === "function") {
+            return kv.delete(key);
+        }
+        return kv.set(key, "");
     };
 
     const listKV = async (pattern: string, returnValues?: boolean) => {
@@ -438,7 +490,8 @@ export const usePuterStore = create<PuterStore>((set, get) => {
                 testMode?: boolean,
                 options?: PuterChatOptions
             ) => chat(prompt, imageURL, testMode, options),
-            feedback: (path: string, message: string) => feedback(path, message),
+            feedback: (path: string, message: string, extractedText?: string) =>
+                feedback(path, message, extractedText),
             img2txt: (image: string | File | Blob, testMode?: boolean) =>
                 img2txt(image, testMode),
         },
@@ -454,3 +507,29 @@ export const usePuterStore = create<PuterStore>((set, get) => {
         clearError: () => set({ error: null }),
     };
 });
+
+/**
+ * Utility function to robustly clean markdown fences and parse JSON from AI outputs.
+ */
+export function cleanAndParseJson<T = any>(rawText: string): T {
+    if (!rawText || typeof rawText !== "string") {
+        throw new Error("Empty or invalid AI response text.");
+    }
+
+    let cleaned = rawText.trim();
+    // Remove ```json ... ``` or ``` ... ```
+    cleaned = cleaned.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
+
+    // Find starting { and ending }
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.slice(firstBrace, lastBrace + 1);
+    }
+
+    try {
+        return JSON.parse(cleaned) as T;
+    } catch (err: any) {
+        throw new Error(`Failed to parse JSON response: ${err?.message || err}`);
+    }
+}

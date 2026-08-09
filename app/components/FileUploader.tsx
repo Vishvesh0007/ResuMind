@@ -4,17 +4,20 @@ import { formatSize } from "../lib/utils";
 
 interface FileUploaderProps {
     onFileSelect?: (file: File | null) => void;
+    disabled?: boolean;
 }
 
-const FileUploader = ({ onFileSelect }: FileUploaderProps) => {
+const FileUploader = ({ onFileSelect, disabled = false }: FileUploaderProps) => {
     const onDrop = useCallback((acceptedFiles: File[]) => {
+        if (disabled) return;
         const file = acceptedFiles[0] || null;
         onFileSelect?.(file);
-    }, [onFileSelect]);
+    }, [onFileSelect, disabled]);
 
     const { getRootProps, getInputProps, isDragActive, acceptedFiles } = useDropzone({
         onDrop,
         multiple: false,
+        disabled,
         accept: {
             "application/pdf": [".pdf"],
         },

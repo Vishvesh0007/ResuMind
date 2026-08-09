@@ -233,13 +233,16 @@ export const prepareInstructions = ({
     jobDescription: string;
 }) =>
     `You are an expert in ATS (Applicant Tracking System) and resume analysis.
-  Please analyze and rate this resume and suggest how to improve it.
+  Please analyze and rate this resume content and suggest how to improve it.
   The rating can be low if the resume is bad.
   Be thorough and detailed. Don't be afraid to point out any mistakes or areas for improvement.
   If there is a lot to improve, don't hesitate to give low scores. This is to help the user to improve their resume.
   If available, use the job description for the job user is applying to to give more detailed feedback.
   If provided, take the job description into consideration.
-  The job title is: ${jobTitle}
-  The job description is: ${jobDescription}
-  Return the analysis as a JSON object, without any other text and without the backticks.
-  Do not include any other text or comments.`;
+  The job title is: ${jobTitle || "Not specified"}
+  The job description is: ${jobDescription || "Not specified"}
+
+  You MUST return your response ONLY as a JSON object strictly matching this TypeScript interface format:
+  ${AIResponseFormat}
+
+  Return valid JSON only. Do not wrap in markdown code blocks, backticks, or extra commentary.`;

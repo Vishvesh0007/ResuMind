@@ -26,30 +26,39 @@ const Resume = () => {
 
     useEffect(() => {
         const loadResume = async () => {
-            const resume = await kv.get(`resume:${id}`);
+            try {
+                const resume = await kv.get(`resume:${id}`);
+                if (!resume) return;
 
-            if (!resume) return;
+                const data = JSON.parse(resume);
 
-            const data = JSON.parse(resume);
+                if (data.resumePath) {
+                    const resumeBlob = await fs.read(data.resumePath);
+                    if (resumeBlob) {
+                        const pdfBlob = new Blob([resumeBlob], { type: "application/pdf" });
+                        setResumeUrl(URL.createObjectURL(pdfBlob));
+                    }
+                }
 
-            const resumeBlob = await fs.read(data.resumePath);
-            if (!resumeBlob) return;
+                if (data.imagePath) {
+                    const imageBlob = await fs.read(data.imagePath);
+                    if (imageBlob) {
+                        setImageUrl(URL.createObjectURL(imageBlob));
+                    }
+                }
 
-            const pdfBlob = new Blob([resumeBlob], { type: "application/pdf" });
-            const resumeUrl = URL.createObjectURL(pdfBlob);
+                if (data.feedback) {
+                    setFeedback(data.feedback);
+                }
+            } catch (err) {
+                console.error("Failed to load resume details:", err);
+            }
+        };
 
-            setResumeUrl(resumeUrl);
-
-            const imageBlob = await fs.read(data.imagePath);
-            if (!imageBlob) return;
-            const imageUrl = URL.createObjectURL(imageBlob);
-            setImageUrl(imageUrl);
-
-            setFeedback(data.feedback);
-            console.log({ resumeUrl, imageUrl, feedback: data.feedback })
+        if (id) {
+            loadResume();
         }
-
-    }, [id]);
+    }, [id, kv, fs]);
     return (
         <main className="!pt-0">
             <nav className="resume-nav">
