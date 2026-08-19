@@ -95,7 +95,6 @@ ResuMind/
 | `/upload` | **Upload & Match**: Submit resume PDF & target job details | `Navbar`, `FileUploader` |
 | `/resume/:id` | **Detailed Review**: PDF preview side-by-side with AI feedback | `Summary`, `ATS`, `Details`, `ScoreGauge` |
 | `/auth` | **Authentication**: User sign-in/sign-out via Puter Auth | Centered Auth Card |
-| `/admin` | **Admin Dashboard**: Real-time user login tracking, session logs & system analytics | User directory table, Stat cards |
 | `/wipe` | **Developer Utility**: Quick wipe tool for KV & Cloud FS storage | File list & Data wipe trigger |
 
 ---

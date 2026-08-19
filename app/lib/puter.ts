@@ -94,9 +94,6 @@ interface PuterStore {
         ) => Promise<string[] | KVItem[] | undefined>;
         flush: () => Promise<boolean | undefined>;
     };
-    admin: {
-        getUsers: () => Promise<AdminUserRecord[]>;
-    };
 
     init: () => void;
     clearError: () => void;
@@ -122,54 +119,6 @@ export const usePuterStore = create<PuterStore>((set, get) => {
         });
     };
 
-    const trackUserActivity = async (user: PuterUser) => {
-        const puter = getPuter();
-        if (!puter || !user || !user.uuid) return;
-        try {
-            const userKey = `admin:user:${user.uuid}`;
-            const existingDataStr = await puter.kv.get(userKey);
-            let existingData: any = null;
-            if (existingDataStr) {
-                try { existingData = JSON.parse(existingDataStr); } catch (e) {}
-            }
-            const updatedData: AdminUserRecord = {
-                uuid: user.uuid,
-                username: user.username || "Anonymous User",
-                lastSeen: new Date().toISOString(),
-                loginCount: (existingData?.loginCount || 0) + (existingData ? 0 : 1),
-                firstSeen: existingData?.firstSeen || new Date().toISOString(),
-            };
-            await puter.kv.set(userKey, JSON.stringify(updatedData));
-        } catch (e) {
-            console.warn("Failed to record admin user activity:", e);
-        }
-    };
-
-    const getAdminUsers = async (): Promise<AdminUserRecord[]> => {
-        const puter = getPuter();
-        if (!puter) return [];
-        try {
-            const keys = await puter.kv.list("admin:user:*");
-            if (!keys || !Array.isArray(keys)) return [];
-            const users: AdminUserRecord[] = [];
-            for (const key of keys) {
-                const keyStr = typeof key === "string" ? key : (key as any).key;
-                if (keyStr) {
-                    const val = await puter.kv.get(keyStr);
-                    if (val) {
-                        try {
-                            users.push(JSON.parse(val));
-                        } catch (e) {}
-                    }
-                }
-            }
-            return users.sort((a, b) => new Date(b.lastSeen).getTime() - new Date(a.lastSeen).getTime());
-        } catch (e) {
-            console.warn("Failed to get admin users:", e);
-            return [];
-        }
-    };
-
     const checkAuthStatus = async (): Promise<boolean> => {
         const puter = getPuter();
         if (!puter) {
@@ -183,7 +132,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
             const isSignedIn = await puter.auth.isSignedIn();
             if (isSignedIn) {
                 const user = await puter.auth.getUser();
-                trackUserActivity(user);
+
                 set({
                     auth: {
                         user,
@@ -555,9 +504,7 @@ export const usePuterStore = create<PuterStore>((set, get) => {
                 listKV(pattern, returnValues),
             flush: () => flushKV(),
         },
-        admin: {
-            getUsers: () => getAdminUsers(),
-        },
+
         init,
         clearError: () => set({ error: null }),
     };
