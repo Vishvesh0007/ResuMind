@@ -18,6 +18,14 @@ interface PuterUser {
     username: string;
 }
 
+interface AdminUserRecord {
+    uuid: string;
+    username: string;
+    lastSeen: string;
+    firstSeen: string;
+    loginCount: number;
+}
+
 interface KVItem {
     key: string;
     value: string;
