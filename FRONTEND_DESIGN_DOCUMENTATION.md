@@ -31,7 +31,7 @@ The application adopts a modular, component-driven client architecture centered 
 ## 3. Folder Structure
 
 ```
-d:\github project\ai-powered-applicant-tracking-system
+d:\github project\ResuMind
 ├── .agents/                    # Agent & skills configuration
 ├── app/                        # Application source code
 │   ├── components/             # Reusable UI components
